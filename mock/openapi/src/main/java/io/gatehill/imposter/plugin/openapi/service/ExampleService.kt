@@ -45,6 +45,7 @@ package io.gatehill.imposter.plugin.openapi.service
 import io.gatehill.imposter.ImposterConfig
 import io.gatehill.imposter.http.HttpExchange
 import io.gatehill.imposter.plugin.openapi.config.OpenApiPluginConfig
+import io.gatehill.imposter.plugin.openapi.model.ContentTypedHolder
 import io.gatehill.imposter.script.ResponseBehaviour
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.responses.ApiResponse
@@ -72,4 +73,5 @@ interface ExampleService {
         specResponse: ApiResponse,
         spec: OpenAPI
     ): Boolean
+    fun findInlineExampleTest (config: OpenApiPluginConfig, httpExchange: HttpExchange, responseBehaviour: ResponseBehaviour, specResponse: ApiResponse, spec: OpenAPI):  ContentTypedHolder<Any>?;
 }

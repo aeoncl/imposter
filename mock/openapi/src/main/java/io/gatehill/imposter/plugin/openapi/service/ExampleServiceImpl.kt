@@ -42,6 +42,9 @@
  */
 package io.gatehill.imposter.plugin.openapi.service
 
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.google.common.base.Strings
 import io.gatehill.imposter.ImposterConfig
 import io.gatehill.imposter.http.HttpExchange
@@ -51,6 +54,7 @@ import io.gatehill.imposter.plugin.openapi.util.RefUtil
 import io.gatehill.imposter.script.ResponseBehaviour
 import io.gatehill.imposter.util.HttpUtil.readAcceptedContentTypes
 import io.gatehill.imposter.util.LogUtil
+import io.swagger.util.Json
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.examples.Example
 import io.swagger.v3.oas.models.media.Content
@@ -82,6 +86,18 @@ class ExampleServiceImpl @Inject constructor(
     ): Boolean {
         return findContent(spec, specResponse)?.let { responseContent ->
             findInlineExample(config, httpExchange, responseBehaviour, responseContent)?.let { inlineExample ->
+
+                var inlineExample = inlineExample
+
+                responseBehaviour.content?.let {contentToOverride ->
+                    var exampleStr = inlineExample.value.toString()
+                    var mapper = ObjectMapper()
+                    var reader = mapper.readerForUpdating(contentToOverride)
+                    var merged : String = reader.readValue(exampleStr)
+                   // inlineExample = Example::value(merged as Any)
+                }
+
+
                 responseTransmissionService.transmitExample(httpExchange, inlineExample)
                 true
 
@@ -117,6 +133,20 @@ class ExampleServiceImpl @Inject constructor(
             LOGGER.trace("Using inline response")
             response.content
         } else {
+            null
+        }
+    }
+
+    override fun findInlineExampleTest(config: OpenApiPluginConfig, httpExchange: HttpExchange, responseBehaviour: ResponseBehaviour, specResponse: ApiResponse, spec: OpenAPI):  ContentTypedHolder<Any>? {
+        return findContent(spec, specResponse)?.let { responseContent ->
+            findInlineExample(config, httpExchange, responseBehaviour, responseContent)?.let { inlineExample ->
+                inlineExample
+            } ?: run {
+                LOGGER.debug("COULDN FIND INLINE EXAMPLE")
+                null
+            }
+        } ?: run {
+            LOGGER.debug("COULDN FIND CONTENT")
             null
         }
     }
